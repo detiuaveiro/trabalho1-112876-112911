@@ -171,7 +171,12 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
   assert (width >= 0);
   assert (height >= 0);
   assert (0 < maxval && maxval <= PixMax);
-  // Insert your code here!
+  Image img = NULL;
+  int success =
+  check( (img = (Image)malloc(sizeof(struct image))) != NULL, "Allocation failed" ) &&
+  check( (img->pixel = (uint8*)malloc(width*height*sizeof(uint8))) != NULL, "Allocation failed" );
+  PIXMEM += (unsigned long)(width*height);  // count pixel memory accesses
+
 }
 
 /// Destroy the image pointed to by (*imgp).
@@ -181,7 +186,11 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
 /// Should never fail, and should preserve global errno/errCause.
 void ImageDestroy(Image* imgp) { ///
   assert (imgp != NULL);
-  // Insert your code here!
+  if (*imgp != NULL) {
+    free((*imgp)->pixel);
+    free(*imgp);
+    *imgp = NULL;
+  }
 }
 
 
