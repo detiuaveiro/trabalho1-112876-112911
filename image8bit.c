@@ -661,9 +661,11 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
 void ImageBlur(Image img, int dx, int dy) { ///
+  assert(img != NULL);
+
   int imgWidth = img->width;
   int imgHeight = img->height;
-  
+
   // Create a temporary image to store the blurred result
   Image blurredImg = ImageCreate(imgWidth, imgHeight, img->maxval);
 
@@ -672,26 +674,34 @@ void ImageBlur(Image img, int dx, int dy) { ///
     return;
   }
 
+  // Precompute cumulative sum for each column
   for (int y = 0; y < imgHeight; ++y) {
+    uint8 sum = 0;
+    for (int j = -dy; j <= dy; ++j) {
+      if (ImageValidPos(img, 0, y + j)) {
+        sum += ImageGetPixel(img, 0, y + j);
+      }
+    }
     for (int x = 0; x < imgWidth; ++x) {
-      // Calculate the mean value of the pixels in the neighborhood
-      uint8 meanValue = 0;
-      int count = 0;
-
-      for (int j = -dy; j <= dy; ++j) {
-        for (int i = -dx; i <= dx; ++i) {
-          int newX = x + i;
-          int newY = y + j;
-
-          if (ImageValidPos(img, newX, newY)) {
-            meanValue += ImageGetPixel(img, newX, newY);
-            count++;
+      // Update the cumulative sum for the current column
+      if (x - dx - 1 >= 0) {
+        for (int j = -dy; j <= dy; ++j) {
+          if (ImageValidPos(img, x - dx - 1, y + j)) {
+            sum -= ImageGetPixel(img, x - dx - 1, y + j);
+          }
+        }
+      }
+      if (x + dx < imgWidth) {
+        for (int j = -dy; j <= dy; ++j) {
+          if (ImageValidPos(img, x + dx, y + j)) {
+            sum += ImageGetPixel(img, x + dx, y + j);
           }
         }
       }
 
-      // Set the pixel in the blurred image to the mean value
-      ImageSetPixel(blurredImg, x, y, (count > 0) ? (meanValue / count) : 0);
+      // Calculate mean value and set the pixel in the blurred image
+      int count = (2 * dx + 1) * (2 * dy + 1);
+      ImageSetPixel(blurredImg, x, y, (count > 0) ? (sum / count) : 0);
     }
   }
 
