@@ -433,9 +433,11 @@ void ImageBrighten(Image img, double factor) { ///
   int size = img->width * img->height;
 
   for (int i = 0; i < size; ++i) {
-    // Multiply each pixel level by the factor, saturate at maxval
-    uint8 newPixelValue = (uint8)(factor * img->pixel[i]);
-    img->pixel[i] = (newPixelValue > img->maxval) ? img->maxval : newPixelValue;
+    // Multiply each pixel level by the factor, saturate at PixMax
+    int newPixelValue = (int)(factor * img->pixel[i] + 0.5);
+    
+    // Saturate at PixMax
+    img->pixel[i] = (newPixelValue > PixMax) ? PixMax : (uint8)newPixelValue;
   }
 }
 
@@ -607,23 +609,23 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   assert (ImageValidPos(img1, x, y));
   
   int subImageWidth = img2->width;
-    int subImageHeight = img2->height;
+  int subImageHeight = img2->height;
 
-    // Check if the subimage fits within the larger image at the specified position
-    if (!ImageValidRect(img1, x, y, subImageWidth, subImageHeight)) {
-        return 0;  // Subimage does not fit, no match
+  // Check if the subimage fits within the larger image at the specified position
+  if (!ImageValidRect(img1, x, y, subImageWidth, subImageHeight)) {
+      return 0;  // Subimage does not fit, no match
+  }
+
+  for (int newY = 0; newY < subImageHeight; ++newY) {
+    for (int newX = 0; newX < subImageWidth; ++newX) {
+      // Check if pixel values match
+      if (ImageGetPixel(img1, x + newX, y + newY) != ImageGetPixel(img2, newX, newY)) {
+        return 0;  // Pixel values do not match, no match
+      }
     }
+  }
 
-    for (int newY = 0; newY < subImageHeight; ++newY) {
-        for (int newX = 0; newX < subImageWidth; ++newX) {
-            // Check if pixel values match
-            if (ImageGetPixel(img1, x + newX, y + newY) != ImageGetPixel(img2, newX, newY)) {
-                return 0;  // Pixel values do not match, no match
-            }
-        }
-    }
-
-    return 1;  // Subimage matches
+  return 1;  // Subimage matches
 }
 
 /// Locate a subimage inside another image.
@@ -633,14 +635,9 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
 int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img1 != NULL);
   assert (img2 != NULL);
-  
-  int img1Width = img1->width;
-  int img1Height = img1->height;
-  int img2Width = img2->width;
-  int img2Height = img2->height;
 
-  for (int y = 0; y <= img1Height - img2Height; ++y) {
-    for (int x = 0; x <= img1Width - img2Width; ++x) {
+  for (int y = 0; y <= img1->height - img2->height; ++y) {
+    for (int x = 0; x <= img1->width - img2->width; ++x) {
       if (ImageMatchSubImage(img1, x, y, img2)) {
         // Subimage found, set the matching position and return 1
         *px = x;
@@ -661,11 +658,9 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
 void ImageBlur(Image img, int dx, int dy) { ///
-  assert(img != NULL);
-
   int imgWidth = img->width;
   int imgHeight = img->height;
-
+  
   // Create a temporary image to store the blurred result
   Image blurredImg = ImageCreate(imgWidth, imgHeight, img->maxval);
 
@@ -674,34 +669,26 @@ void ImageBlur(Image img, int dx, int dy) { ///
     return;
   }
 
-  // Precompute cumulative sum for each column
   for (int y = 0; y < imgHeight; ++y) {
-    uint8 sum = 0;
-    for (int j = -dy; j <= dy; ++j) {
-      if (ImageValidPos(img, 0, y + j)) {
-        sum += ImageGetPixel(img, 0, y + j);
-      }
-    }
     for (int x = 0; x < imgWidth; ++x) {
-      // Update the cumulative sum for the current column
-      if (x - dx - 1 >= 0) {
-        for (int j = -dy; j <= dy; ++j) {
-          if (ImageValidPos(img, x - dx - 1, y + j)) {
-            sum -= ImageGetPixel(img, x - dx - 1, y + j);
-          }
-        }
-      }
-      if (x + dx < imgWidth) {
-        for (int j = -dy; j <= dy; ++j) {
-          if (ImageValidPos(img, x + dx, y + j)) {
-            sum += ImageGetPixel(img, x + dx, y + j);
+      // Calculate the mean value of the pixels in the neighborhood
+      uint8 meanValue = 0;
+      int count = 0;
+
+      for (int j = -dy; j <= dy; ++j) {
+        for (int i = -dx; i <= dx; ++i) {
+          int newX = x + i;
+          int newY = y + j;
+
+          if (ImageValidPos(img, newX, newY)) {
+            meanValue += ImageGetPixel(img, newX, newY);
+            count++;
           }
         }
       }
 
-      // Calculate mean value and set the pixel in the blurred image
-      int count = (2 * dx + 1) * (2 * dy + 1);
-      ImageSetPixel(blurredImg, x, y, (count > 0) ? (sum / count) : 0);
+      // Set the pixel in the blurred image to the mean value
+      ImageSetPixel(blurredImg, x, y, (count > 0) ? (meanValue / count) : 0);
     }
   }
 
