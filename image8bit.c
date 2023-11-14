@@ -660,7 +660,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 void ImageBlur(Image img, int dx, int dy) { ///
   int imgWidth = img->width;
   int imgHeight = img->height;
-  
+
   // Create a temporary image to store the blurred result
   Image blurredImg = ImageCreate(imgWidth, imgHeight, img->maxval);
 
@@ -672,7 +672,7 @@ void ImageBlur(Image img, int dx, int dy) { ///
   for (int y = 0; y < imgHeight; ++y) {
     for (int x = 0; x < imgWidth; ++x) {
       // Calculate the mean value of the pixels in the neighborhood
-      uint8 meanValue = 0;
+      double meanValue = 0.0;
       int count = 0;
 
       for (int j = -dy; j <= dy; ++j) {
@@ -687,8 +687,8 @@ void ImageBlur(Image img, int dx, int dy) { ///
         }
       }
 
-      // Set the pixel in the blurred image to the mean value
-      ImageSetPixel(blurredImg, x, y, (count > 0) ? (meanValue / count) : 0);
+      // Set the pixel in the blurred image to the rounded mean value
+      ImageSetPixel(blurredImg, x, y, (count > 0) ? (uint8)(meanValue / count + 0.5) : 0);
     }
   }
 
@@ -699,5 +699,4 @@ void ImageBlur(Image img, int dx, int dy) { ///
 
   // Free the temporary image
   ImageDestroy(&blurredImg);
-
 }
