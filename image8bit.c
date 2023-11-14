@@ -592,9 +592,9 @@ void ImageBlend(Image img1, int x, int y, Image img2, double alpha) { ///
   int size = img2->width * img2->height;
 
   for (int i = 0; i < size; ++i) {
-    // Blend pixel values based on alpha
-    uint8 blendedValue = (uint8)((1.0 - alpha) * ImageGetPixel(img1, x + i % img2->width, y + i / img2->width)
-                              + alpha * ImageGetPixel(img2, i % img2->width, i / img2->width));
+    // Blend pixel values based on alpha using integer arithmetic
+    uint8 blendedValue = (uint8)(((1.0 - alpha) * ImageGetPixel(img1, x + i % img2->width, y + i / img2->width))
+                                  + (alpha * ImageGetPixel(img2, i % img2->width, i / img2->width)) + 0.5);
     // Set pixel in the larger image to the blended value
     ImageSetPixel(img1, x + i % img2->width, y + i / img2->width, blendedValue);
   }
