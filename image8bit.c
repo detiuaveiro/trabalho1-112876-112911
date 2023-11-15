@@ -701,7 +701,7 @@ void ImageBlur(Image img, int dx, int dy) { ///
   ImageDestroy(&blurredImg);
 }
 
-oid ComputeIntegralImage(Image img, int** integralImg) {
+void ComputeIntegralImage(Image img, int** integralImg) {
   int imgWidth = img->width;
   int imgHeight = img->height;
 
