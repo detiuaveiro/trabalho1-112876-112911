@@ -73,6 +73,34 @@ test9: $(PROGS) setup
 	./imageTool test/original.pgm blur 7,7 save blur.pgm
 	cmp blur.pgm test/blur.pgm
 
+test10: $(PROGS) setup
+	./imageTool pgm/medium/ireland-03_640x480.pgm blur 12,7 save blurIreland_slow.pgm
+	./imageTool pgm/medium/ireland-03_640x480.pgm blurOptimized 12,7 save blurIreland_fast.pgm
+
+test11: $(PROGS) setup
+	./imageTool pgm/medium/mandrill_512x512.pgm blur 0,7 save blurMandrill_slow.pgm
+	./imageTool pgm/medium/mandrill_512x512.pgm blurOptimized 0,7 save blurMandrill_fast.pgm
+
+test12: $(PROGS) setup
+	./imageTool pgm/small/art4_300x300.pgm blur 75,7 save blurArt4_slow.pgm
+	./imageTool pgm/small/art4_300x300.pgm blurOptimized 75,7 save blurArt4_fast.pgm
+
+test13: $(PROGS) setup
+	./imageTool pgm/large/airfield-05_1600x1200.pgm blur 33,3 save blurAirfield_slow.pgm
+	./imageTool pgm/large/airfield-05_1600x1200.pgm blurOptimized 33,3 save blurAirfield_fast.pgm
+
+test14: $(PROGS) setup
+	./imageTool test/small.pgm test/paste.pgm locate
+
+test15: $(PROGS) setup
+	./imageTool test/original.pgm pgm/large/airfield-05_1600x1200.pgm paste 1100,420 save test1.pgm
+	./imageTool test/original.pgm test.pgm locate
+
+test16: $(PROGS) setup
+	./imageTool pgm/medium/mandrill_512x512.pgm pgm/large/airfield-05_1600x1200.pgm paste 555,555 save test2.pgm
+	./imageTool pgm/medium/airfield-05_640x480.pgm test2.pgm locate
+	./imageTool pgm/medium/mandrill_512x512.pgm test2.pgm locate
+
 .PHONY: tests
 tests: $(TESTS)
 
