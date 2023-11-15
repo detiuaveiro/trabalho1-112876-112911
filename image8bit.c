@@ -700,3 +700,117 @@ void ImageBlur(Image img, int dx, int dy) { ///
   // Free the temporary image
   ImageDestroy(&blurredImg);
 }
+
+oid ComputeIntegralImage(Image img, int** integralImg) {
+  int imgWidth = img->width;
+  int imgHeight = img->height;
+
+  // Allocate memory for the integral image
+  *integralImg = (int*)malloc(imgWidth * imgHeight * sizeof(int));
+
+  if (*integralImg == NULL) {
+    // Memory allocation failed
+    errCause = "Memory allocation failed for integral image in ComputeIntegralImage";
+    return;
+  }
+
+  // Initialize the first row of the integral image
+  (*integralImg)[0] = ImageGetPixel(img, 0, 0);
+
+  // Compute the first row
+  for (int x = 1; x < imgWidth; ++x) {
+    (*integralImg)[x] = (*integralImg)[x - 1] + ImageGetPixel(img, x, 0);
+  }
+
+  // Compute the remaining rows
+  for (int y = 1; y < imgHeight; ++y) {
+    int rowSum = 0;
+    for (int x = 0; x < imgWidth; ++x) {
+      rowSum += ImageGetPixel(img, x, y);
+      (*integralImg)[y * imgWidth + x] = (*integralImg)[(y - 1) * imgWidth + x] + rowSum;
+    }
+  }
+}
+
+/// Optimized Blur function using integral images
+void ImageBlur2(Image img, int dx, int dy) {
+  assert(img != NULL);
+  assert(dx >= 0 && dy >= 0);
+
+  int imgWidth = img->width;
+  int imgHeight = img->height;
+
+  // Compute the integral image
+  int* integralImg;
+  ComputeIntegralImage(img, &integralImg);
+
+  if (integralImg == NULL) {
+    // Error occurred in ComputeIntegralImage
+    return;
+  }
+
+  for (int y = 0; y < imgHeight; ++y) {
+    for (int x = 0; x < imgWidth; ++x) {
+      int x1 = x - dx - 1;
+      int x2 = x + dx;
+      int y1 = y - dy - 1;
+      int y2 = y + dy;
+
+      // Adjust the rectangle boundaries to be within the image bounds
+      x1 = (x1 < 0) ? 0 : x1;
+      x2 = (x2 >= imgWidth) ? imgWidth - 1 : x2;
+      y1 = (y1 < 0) ? 0 : y1;
+      y2 = (y2 >= imgHeight) ? imgHeight - 1 : y2;
+
+      // Compute the sum of pixel values in the rectangle using integral image
+      int sum = integralImg[y2 * imgWidth + x2];
+
+      if (x1 > 0) {
+        sum -= integralImg[y2 * imgWidth + x1 - 1];
+      }
+
+      if (y1 > 0) {
+        sum -= integralImg[(y1 - 1) * imgWidth + x2];
+      }
+
+      if (x1 > 0 && y1 > 0) {
+        sum += integralImg[(y1 - 1) * imgWidth + x1 - 1];
+      }
+
+      // Calculate the mean value and set the pixel
+       // Set the pixel in the blurred image to the rounded mean value
+      int count = (x2 - x1 + 1) * (y2 - y1 + 1);
+      uint8 meanValue = (count > 0) ? (uint8)((double)sum / count + 0.5) : 0;
+
+      //uint8 meanValue = (uint8)((sum + count / 2) / count);
+
+      //double meanValue = (count > 0) ? (double)sum / count : 0.0;
+      //uint8 roundedMeanValue = (uint8)(meanValue + 0.5);
+
+      // uint8 meanValue = (count > 0) ? (sum + count / 2) / count : 0;
+
+      
+      ImageSetPixel(img, x, y, meanValue);
+
+      /*
+      // Calculate the mean value
+      double meanValue = (count > 0) ? (double)sum / count : 0.0;
+
+      // Ensure that the mean value is within the valid range for uint8
+      if (meanValue < 0.0) {
+        meanValue = 0.0;
+      } else if (meanValue > 255.0) {
+        meanValue = 255.0;
+      }
+
+      // Round the mean value
+      uint8 roundedMeanValue = (uint8)(meanValue + 0.5);
+
+      // Set the pixel in the blurred image to the rounded mean value
+      ImageSetPixel(img, x, y, roundedMeanValue);*/
+    }
+  }
+
+  // Free memory allocated for the integral image
+  free(integralImg);
+}
