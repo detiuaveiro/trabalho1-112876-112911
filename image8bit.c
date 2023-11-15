@@ -733,7 +733,7 @@ void ComputeIntegralImage(Image img, int** integralImg) {
 }
 
 /// Optimized Blur function using integral images
-void ImageBlur2(Image img, int dx, int dy) {
+void ImageBlurOptimized(Image img, int dx, int dy) {
   assert(img != NULL);
   assert(dx >= 0 && dy >= 0);
 
