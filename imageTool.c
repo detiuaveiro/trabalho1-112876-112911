@@ -201,7 +201,14 @@ int main(int ac, char* av[]) {
       if (sscanf(av[k], "%d,%d", &dx, &dy) != 2) { err = 5; break; }
       fprintf(stderr, "Blur I%d with %dx%d mean filter\n", n-1, 2*dx+1, 2*dy+1);
       ImageBlur(img[n-1], dx, dy);
-    } else if (strcmp(av[k], "save") == 0) {
+    } else if (strcmp(av[k], "blurOptimized") == 0) {
+      if (++k >= ac) { err = 1; break; }
+      if (n < 1) { err = 2; break; }
+      int dx; int dy;
+      if (sscanf(av[k], "%d,%d", &dx, &dy) != 2) { err = 5; break; }
+      fprintf(stderr, "BlurOptimized I%d with %dx%d mean filter\n", n-1, 2*dx+1, 2*dy+1);
+      ImageBlurOptimized(img[n-1], dx, dy);
+      } else if (strcmp(av[k], "save") == 0) {
       if (++k >= ac) { err = 1; break; }
       if (n < 1) { err = 2; break; }
       fprintf(stderr, "Saving %s <- I%d\n", av[k], n-1);
