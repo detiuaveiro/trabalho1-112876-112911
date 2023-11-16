@@ -636,7 +636,7 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
 int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img1 != NULL);
   assert (img2 != NULL);
-  int64_t count = 0;
+  uint64_t count = 0;
 
   for (int y = 0; y <= img1->height - img2->height; ++y) {
     for (int x = 0; x <= img1->width - img2->width; ++x) {
@@ -651,7 +651,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
     }
   }
 
-  int64_t formula = (img1->width-img2->width+1)*(img1->height-img2->height+1)*(img2->width*img2->height);
+  uint64_t formula = (img1->width-img2->width+1)*(img1->height-img2->height+1)*(img2->width*img2->height);
 
   printf("Total operations ImageLocateSubImage: %ld \n", formula);
 
