@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include "instrumentation.h"
 #include <math.h>
+#include <stdint.h>
 
 // The data structure
 //
@@ -635,17 +636,24 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
 int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img1 != NULL);
   assert (img2 != NULL);
+  int64_t count = 0;
 
   for (int y = 0; y <= img1->height - img2->height; ++y) {
     for (int x = 0; x <= img1->width - img2->width; ++x) {
+      count += img2->width * img2->height;
       if (ImageMatchSubImage(img1, x, y, img2)) {
         // Subimage found, set the matching position and return 1
         *px = x;
         *py = y;
+        printf("Total operations ImageLocateSubImage: %ld)\n", count);
         return 1;
       }
     }
   }
+
+  int64_t formula = (img1->width-img2->width+1)*(img1->height-img2->height+1)*(img2->width*img2->height);
+
+  printf("Total operations ImageLocateSubImage: %ld \n", formula);
 
   return 0;  // No match found
 }
@@ -668,7 +676,7 @@ void ImageBlur(Image img, int dx, int dy) { ///
     // Memory allocation failed
     return;
   }
-
+  int comps = 0;
   for (int y = 0; y < imgHeight; ++y) {
     for (int x = 0; x < imgWidth; ++x) {
       // Calculate the mean value of the pixels in the neighborhood
@@ -677,6 +685,7 @@ void ImageBlur(Image img, int dx, int dy) { ///
 
       for (int j = -dy; j <= dy; ++j) {
         for (int i = -dx; i <= dx; ++i) {
+          comps++;
           int newX = x + i;
           int newY = y + j;
 
@@ -696,6 +705,8 @@ void ImageBlur(Image img, int dx, int dy) { ///
   for (int i = 0; i < imgWidth * imgHeight; ++i) {
     ImageSetPixel(img, i % imgWidth, i / imgWidth, ImageGetPixel(blurredImg, i % imgWidth, i / imgWidth));
   }
+
+  printf("Total operations Blur: %d (memory operations: %d)\n", imgWidth * imgHeight * (2 * dy + 1) * (2 * dx + 1), comps);
 
   // Free the temporary image
   ImageDestroy(&blurredImg);
@@ -734,6 +745,7 @@ void ComputeIntegralImage(Image img, int** integralImg) {
 
 /// Optimized Blur function using integral images
 void ImageBlurOptimized(Image img, int dx, int dy) {
+  int ops = 0;
   assert(img != NULL);
   assert(dx >= 0 && dy >= 0);
 
@@ -751,6 +763,7 @@ void ImageBlurOptimized(Image img, int dx, int dy) {
 
   for (int y = 0; y < imgHeight; ++y) {
     for (int x = 0; x < imgWidth; ++x) {
+      ops++;
       int x1 = x - dx - 1;
       int x2 = x + dx;
       int y1 = y - dy - 1;
@@ -781,7 +794,6 @@ void ImageBlurOptimized(Image img, int dx, int dy) {
        // Set the pixel in the blurred image to the rounded mean value
       int count = (x2 - x1 + 1) * (y2 - y1 + 1);
       uint8 meanValue = (count > 0) ? (uint8)((double)sum / count + 0.5) : 0;
-
       //uint8 meanValue = (uint8)((sum + count / 2) / count);
 
       //double meanValue = (count > 0) ? (double)sum / count : 0.0;
@@ -810,6 +822,13 @@ void ImageBlurOptimized(Image img, int dx, int dy) {
       ImageSetPixel(img, x, y, roundedMeanValue);*/
     }
   }
+
+  printf("Total operations BlurOptimized: %d (memory operations: %d)\n", imgWidth * imgHeight, ops);
+
+
+  // Free memory allocated for the integral image
+  free(integralImg);
+}
 
   // Free memory allocated for the integral image
   free(integralImg);
