@@ -829,7 +829,3 @@ void ImageBlurOptimized(Image img, int dx, int dy) {
   // Free memory allocated for the integral image
   free(integralImg);
 }
-
-  // Free memory allocated for the integral image
-  free(integralImg);
-}
