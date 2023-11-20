@@ -94,12 +94,55 @@ test14: $(PROGS) setup
 
 test15: $(PROGS) setup
 	./imageTool test/original.pgm pgm/large/airfield-05_1600x1200.pgm paste 1100,420 save test1.pgm
-	./imageTool test/original.pgm test.pgm locate
+	./imageTool test/original.pgm test1.pgm locate
 
 test16: $(PROGS) setup
 	./imageTool pgm/medium/mandrill_512x512.pgm pgm/large/airfield-05_1600x1200.pgm paste 555,555 save test2.pgm
 	./imageTool pgm/medium/airfield-05_640x480.pgm test2.pgm locate
-	./imageTool pgm/medium/mandrill_512x512.pgm test2.pgm locate
+
+test17: $(PROGS) setup
+	./imageTool test/small.pgm blur 2,7 save blur1.pgm
+	./imageTool test/small.pgm blur 12,7 save blur2.pgm
+	./imageTool test/small.pgm blur 127,7 save blur3.pgm
+	./imageTool test/small.pgm blurOptimized 2,7 
+	./imageTool test/small.pgm blurOptimized 12,7 save blurO2.pgm
+	./imageTool test/small.pgm blurOptimized 127,7
+
+test_BestCase: $(PROGS) setup
+	./imageTool createWhite 1,1 save White_1x1.pgm
+	./imageTool createWhite 10,10 save White_10x10.pgm
+	./imageTool createWhite 100,100 save White_100x100.pgm
+	./imageTool createWhite 1000,1000 save White_1000x1000.pgm
+	./imageTool createWhite 10000,10000 save White_10000x10000.pgm
+	./imageTool White_1x1.pgm White_10x10.pgm locate
+	./imageTool White_1x1.pgm White_100x100.pgm locate
+	./imageTool White_1x1.pgm White_1000x1000.pgm locate
+	./imageTool White_1x1.pgm White_10000x10000.pgm locate
+	
+test_WorstCase: $(PROGS) setup
+	./imageTool createWhite 10,10 save White_10x10.pgm
+	./imageTool createWhite 100,100 save White_100x100.pgm
+	./imageTool createWhite 1000,1000 save White_1000x1000.pgm
+	./imageTool createWhite 10000,10000 save White_10000x10000.pgm
+	./imageTool create 1,1 save Black_1x1.pgm
+	./imageTool Black_1x1.pgm White_10x10.pgm locate
+	./imageTool Black_1x1.pgm White_100x100.pgm locate
+	./imageTool Black_1x1.pgm White_1000x1000.pgm locate
+	./imageTool Black_1x1.pgm White_10000x10000.pgm locate
+
+test_Blur: $(PROGS) setup
+	./imageTool createRandom 10,10 save Random_10x10.pgm
+	./imageTool createRandom 100,100 save Random_100x100.pgm
+	./imageTool createRandom 1000,1000 save Random_1000x1000.pgm
+	./imageTool createRandom 10000,10000 save Random_10000x10000.pgm
+	./imageTool Random_10x10.pgm blur 33,3
+	./imageTool Random_10x10.pgm blurOptimized 33,3
+	./imageTool Random_100x100.pgm blur 33,3
+	./imageTool Random_100x100.pgm blurOptimized 33,3
+	./imageTool Random_1000x1000.pgm blur 33,3
+	./imageTool Random_1000x1000.pgm blurOptimized 33,3
+	./imageTool Random_10000x10000.pgm blur 33,3
+	./imageTool Random_10000x10000.pgm blurOptimized 33,3
 
 .PHONY: tests
 tests: $(TESTS)

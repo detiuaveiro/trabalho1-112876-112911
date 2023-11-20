@@ -10,7 +10,7 @@
 /// 2013, 2023
 
 // Student authors (fill in below):
-// NMec: 112876; 112911   Name: Ricardo Martins; Tiago Brito
+// NMec: 112876; 112911   Name: Ricardo Martins; 
 // 
 // 
 // 
@@ -367,6 +367,7 @@ static inline int G(Image img, int x, int y) {
   int index;
   index = y * img->width + x;
   assert (0 <= index && index < img->width*img->height);
+  InstrCount[1] += 1;
   return index;
 }
 
@@ -636,24 +637,25 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
 int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img1 != NULL);
   assert (img2 != NULL);
-  uint64_t count = 0;
 
   for (int y = 0; y <= img1->height - img2->height; ++y) {
     for (int x = 0; x <= img1->width - img2->width; ++x) {
-      count += img2->width * img2->height;
       if (ImageMatchSubImage(img1, x, y, img2)) {
         // Subimage found, set the matching position and return 1
         *px = x;
         *py = y;
-        printf("Total operations ImageLocateSubImage: %ld)\n", count);
+        InstrName[1] = "ImageLocate";
+        InstrPrint();
         return 1;
       }
     }
   }
+  
+  uint64_t formula = 2*(img1->height-img2->height + 1)*(img1->width-img2->width + 1)*(img2->height*img2->width);
 
-  uint64_t formula = (img1->width-img2->width+1)*(img1->height-img2->height+1)*(img2->width*img2->height);
-
-  printf("Total operations ImageLocateSubImage: %ld \n", formula);
+  printf("Worst case for the total number of operations ImageLocateSubImage: %ld \n", formula);
+  InstrName[1] = "ImageLocate";
+  InstrPrint();
 
   return 0;  // No match found
 }
@@ -676,7 +678,6 @@ void ImageBlur(Image img, int dx, int dy) { ///
     // Memory allocation failed
     return;
   }
-  int comps = 0;
   for (int y = 0; y < imgHeight; ++y) {
     for (int x = 0; x < imgWidth; ++x) {
       // Calculate the mean value of the pixels in the neighborhood
@@ -685,7 +686,6 @@ void ImageBlur(Image img, int dx, int dy) { ///
 
       for (int j = -dy; j <= dy; ++j) {
         for (int i = -dx; i <= dx; ++i) {
-          comps++;
           int newX = x + i;
           int newY = y + j;
 
@@ -706,7 +706,10 @@ void ImageBlur(Image img, int dx, int dy) { ///
     ImageSetPixel(img, i % imgWidth, i / imgWidth, ImageGetPixel(blurredImg, i % imgWidth, i / imgWidth));
   }
 
-  printf("Total operations Blur: %d (memory operations: %d)\n", imgWidth * imgHeight * (2 * dy + 1) * (2 * dx + 1), comps);
+  printf("Worst Case for number of operations: %d \n", imgWidth * imgHeight * (2 * dy + 1) * (2 * dx + 1));
+  InstrName[0] = "IterationsBlur";
+  InstrPrint();
+  InstrReset();
 
   // Free the temporary image
   ImageDestroy(&blurredImg);
@@ -794,37 +797,15 @@ void ImageBlurOptimized(Image img, int dx, int dy) {
        // Set the pixel in the blurred image to the rounded mean value
       int count = (x2 - x1 + 1) * (y2 - y1 + 1);
       uint8 meanValue = (count > 0) ? (uint8)((double)sum / count + 0.5) : 0;
-      //uint8 meanValue = (uint8)((sum + count / 2) / count);
 
-      //double meanValue = (count > 0) ? (double)sum / count : 0.0;
-      //uint8 roundedMeanValue = (uint8)(meanValue + 0.5);
-
-      // uint8 meanValue = (count > 0) ? (sum + count / 2) / count : 0;
-
-      
       ImageSetPixel(img, x, y, meanValue);
-
-      /*
-      // Calculate the mean value
-      double meanValue = (count > 0) ? (double)sum / count : 0.0;
-
-      // Ensure that the mean value is within the valid range for uint8
-      if (meanValue < 0.0) {
-        meanValue = 0.0;
-      } else if (meanValue > 255.0) {
-        meanValue = 255.0;
-      }
-
-      // Round the mean value
-      uint8 roundedMeanValue = (uint8)(meanValue + 0.5);
-
-      // Set the pixel in the blurred image to the rounded mean value
-      ImageSetPixel(img, x, y, roundedMeanValue);*/
     }
   }
 
-  printf("Total operations BlurOptimized: %d (memory operations: %d)\n", imgWidth * imgHeight, ops);
-
+  printf("Worst case for the total number of operations BlurOptimized: %d\n", 3*(imgWidth * imgHeight));
+  InstrName[0] = "IterationsBlurOptimized";
+  InstrPrint();
+  
 
   // Free memory allocated for the integral image
   free(integralImg);
