@@ -143,6 +143,38 @@ int main(int ac, char* av[]) {
       img[n] = ImageCreate(w, h, PixMax);
       if (img[n] == NULL) { err = 4; break; }
       n++;
+    } else if (strcmp(av[k], "createWhite") == 0) {
+      if (++k >= ac) { err = 1; break; }
+      if (n >= N) { err = 3; break; }
+      if (sscanf(av[k], "%d,%d", &w, &h) != 2) { err = 5; break; }
+      if (w < 0 || h < 0) { err = 5; break; }   // precondition check!
+      fprintf(stderr, "Creating White image (%d,%d) -> I%d\n", w, h, n);
+      img[n] = ImageCreate(w, h, PixMax); 
+
+      // Set all pixels to white
+      for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+          ImageSetPixel(img[n], j, i, 255);
+        }
+      }
+      if (img[n] == NULL) { err = 4; break; }
+      n++;
+    } else if (strcmp(av[k], "createRandom") == 0) {
+      if (++k >= ac) { err = 1; break; }
+      if (n >= N) { err = 3; break; }
+      if (sscanf(av[k], "%d,%d", &w, &h) != 2) { err = 5; break; }
+      if (w < 0 || h < 0) { err = 5; break; }   // precondition check!
+      fprintf(stderr, "Creating Random image (%d,%d) -> I%d\n", w, h, n);
+      img[n] = ImageCreate(w, h, PixMax); 
+
+      // Set random colors for each pixel
+      for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+          ImageSetPixel(img[n], j, i, rand() % (PixMax + 1));
+        }
+      }
+      if (img[n] == NULL) { err = 4; break; }
+      n++;
     } else if (strcmp(av[k], "rotate") == 0) {
       if (n < 1) { err = 2; break; }
       if (n >= N) { err = 3; break; }
