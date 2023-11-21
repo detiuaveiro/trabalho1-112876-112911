@@ -10,7 +10,7 @@
 /// 2013, 2023
 
 // Student authors (fill in below):
-// NMec: 112876; 112911   Name: Ricardo Martins; 
+// NMec: 112876; 112911   Name: Ricardo Martins; Tiago Brito
 // 
 // 
 // 
