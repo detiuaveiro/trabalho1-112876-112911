@@ -364,10 +364,10 @@ int ImageValidRect(Image img, int x, int y, int w, int h) { ///
 // This internal function is used in ImageGetPixel / ImageSetPixel. 
 // The returned index must satisfy (0 <= index < img->width*img->height)
 static inline int G(Image img, int x, int y) {
+  InstrCount[1]++;
   int index;
   index = y * img->width + x;
   assert (0 <= index && index < img->width*img->height);
-  InstrCount[1] += 1;
   return index;
 }
 
@@ -638,6 +638,12 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img1 != NULL);
   assert (img2 != NULL);
 
+  uint64_t formula = 2*(img1->height-img2->height + 1)*(img1->width-img2->width + 1)*(img2->height*img2->width);
+  uint64_t formula_BestCase = 2*(img2->height*img2->width);
+
+  printf("Worst case for the total number of operations ImageLocateSubImage: %ld \n", formula);
+  printf("Best case for the total number of operations ImageLocateSubImage: %ld \n", formula_BestCase);
+
   for (int y = 0; y <= img1->height - img2->height; ++y) {
     for (int x = 0; x <= img1->width - img2->width; ++x) {
       if (ImageMatchSubImage(img1, x, y, img2)) {
@@ -645,17 +651,18 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
         *px = x;
         *py = y;
         InstrName[1] = "ImageLocate";
+        InstrCalibrate();
         InstrPrint();
+        InstrReset();
         return 1;
       }
     }
   }
   
-  uint64_t formula = 2*(img1->height-img2->height + 1)*(img1->width-img2->width + 1)*(img2->height*img2->width);
-
-  printf("Worst case for the total number of operations ImageLocateSubImage: %ld \n", formula);
   InstrName[1] = "ImageLocate";
+  InstrCalibrate();
   InstrPrint();
+  InstrReset();
 
   return 0;  // No match found
 }
@@ -708,6 +715,7 @@ void ImageBlur(Image img, int dx, int dy) { ///
 
   printf("Worst Case for number of operations: %d \n", imgWidth * imgHeight * (2 * dy + 1) * (2 * dx + 1));
   InstrName[0] = "IterationsBlur";
+  InstrCalibrate();
   InstrPrint();
   InstrReset();
 
@@ -804,8 +812,9 @@ void ImageBlurOptimized(Image img, int dx, int dy) {
 
   printf("Worst case for the total number of operations BlurOptimized: %d\n", 3*(imgWidth * imgHeight));
   InstrName[0] = "IterationsBlurOptimized";
+  InstrCalibrate();
   InstrPrint();
-  
+  InstrReset();
 
   // Free memory allocated for the integral image
   free(integralImg);
