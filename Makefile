@@ -70,7 +70,7 @@ test8: $(PROGS) setup
 	cmp blend.pgm test/blend.pgm
 
 test9: $(PROGS) setup
-	./imageTool test/original.pgm blur 7,7 save blur.pgm
+	./imageTool test/original.pgm blurOptimized 7,7 save blur.pgm
 	cmp blur.pgm test/blur.pgm
 
 test10: $(PROGS) setup
@@ -118,6 +118,10 @@ test_BestCase: $(PROGS) setup
 	./imageTool White_1x1.pgm White_100x100.pgm locate
 	./imageTool White_1x1.pgm White_1000x1000.pgm locate
 	./imageTool White_1x1.pgm White_10000x10000.pgm locate
+	./imageTool White_10x10.pgm White_10x10.pgm locate
+	./imageTool White_10x10.pgm White_10000x10000.pgm locate
+	./imageTool White_100x100.pgm White_100x100.pgm locate
+	./imageTool White_100x100.pgm White_10000x10000.pgm locate
 	
 test_WorstCase: $(PROGS) setup
 	./imageTool createWhite 10,10 save White_10x10.pgm
@@ -129,6 +133,26 @@ test_WorstCase: $(PROGS) setup
 	./imageTool Black_1x1.pgm White_100x100.pgm locate
 	./imageTool Black_1x1.pgm White_1000x1000.pgm locate
 	./imageTool Black_1x1.pgm White_10000x10000.pgm locate
+
+test_ImageLocate : $(PROGS) setup
+	./imageTool createWhite 10,10 save White_10x10.pgm
+	./imageTool createWhite 100,100 save White_100x100.pgm
+	./imageTool createWhite 1000,1000 save White_1000x1000.pgm
+	./imageTool createWhite 10000,10000 save White_10000x10000.pgm
+	./imageTool create 1,1 save Black_1x1.pgm
+	./imageTool create 10,10 save Black_10x10.pgm
+
+	./imageTool Black_1x1.pgm White_10x10.pgm paste 5,5 save testLocate1.pgm
+	./imageTool Black_1x1.pgm White_1000x1000.pgm paste 5,5 save testLocate2.pgm
+	./imageTool Black_10x10.pgm White_1000x1000.pgm paste 5,5 save testLocate3.pgm
+	./imageTool Black_10x10.pgm White_1000x1000.pgm paste 50,50 save testLocate4.pgm
+	./imageTool Black_10x10.pgm White_1000x1000.pgm paste 500,500 save testLocate5.pgm
+
+	./imageTool Black_1x1.pgm testLocate1.pgm locate
+	./imageTool Black_1x1.pgm testLocate2.pgm locate
+	./imageTool Black_10x10.pgm testLocate3.pgm locate
+	./imageTool Black_10x10.pgm testLocate4.pgm locate
+	./imageTool Black_10x10.pgm testLocate5.pgm locate
 
 test_Blur: $(PROGS) setup
 	./imageTool createRandom 10,10 save Random_10x10.pgm
@@ -143,6 +167,10 @@ test_Blur: $(PROGS) setup
 	./imageTool Random_1000x1000.pgm blurOptimized 33,3
 	./imageTool Random_10000x10000.pgm blur 33,3
 	./imageTool Random_10000x10000.pgm blurOptimized 33,3
+	./imageTool Random_1000x1000.pgm blur 8,5
+	./imageTool Random_1000x1000.pgm blurOptimized 8,5
+	./imageTool Random_1000x1000.pgm blur 80,5
+	./imageTool Random_1000x1000.pgm blurOptimized 80,5
 
 .PHONY: tests
 tests: $(TESTS)
