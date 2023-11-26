@@ -70,7 +70,7 @@ test8: $(PROGS) setup
 	cmp blend.pgm test/blend.pgm
 
 test9: $(PROGS) setup
-	./imageTool test/original.pgm blurOptimized 7,7 save blur.pgm
+	./imageTool test/original.pgm blur 7,7 save blur.pgm
 	cmp blur.pgm test/blur.pgm
 
 test10: $(PROGS) setup
